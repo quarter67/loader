@@ -5,7 +5,7 @@
     loadstring(game:HttpGet("https://raw.githubusercontent.com/quarter67/loader/main/loader.lua?t=" .. tostring(os.time()) .. "&v=520"))()
 ]]
 
-local VERSION = "5.2.0-keyless"
+local VERSION = "5.2.1-keyless"
 
 local CONFIG = {
     PLACE_ID = 134225461562780,
@@ -148,7 +148,10 @@ local function getEnv()
 end
 
 local function patchKeylessSource(source)
-    -- homelandertest.lua uses resolvePremiumAccess; production uses resolveScriptAccess
+    -- homelandertest dev build: full premium by default — do not inject NF_KEYLESS
+    if source:find("resolvePremiumAccess") or source:find("MOBILE%-MOVE%-FIX") then
+        return source
+    end
     source = source:gsub(
         "local isPremium, allowRun = resolveScriptAccess%(%)",
         "local isPremium, allowRun = false, true",
@@ -337,7 +340,7 @@ hint.TextSize = 11
 hint.TextColor3 = Color3.fromRGB(120, 124, 140)
 hint.TextWrapped = true
 hint.TextXAlignment = Enum.TextXAlignment.Left
-hint.Text = "v" .. VERSION .. " · keyless loads homelandertest.lua from GitHub"
+hint.Text = "v" .. VERSION .. " · keyless → homelandertest.lua (full premium)"
 hint.Parent = panel
 
 -- ── Buttons ─────────────────────────────────────────────────────────────────
