@@ -1,20 +1,26 @@
 --[[
-    NightFall PC Loader — test SurviveHomelanderPC.lua (keeps loader.lua separate)
+    NightFall PC Loader — premium + keyless PC builds
+
+    GitHub: quarter67/loader (this file)
+    Script: quarter67/NightFall (SurviveHomelanderPC.lua + SurviveHomelanderPCkeyless.lua)
 
     Local test (executor with readfile):
         loadstring(readfile("pcloader.lua"))()
 
-    Put SurviveHomelanderPC.lua in workspace/ or nightfall/ for offline load.
+    Put script files in workspace/ or nightfall/ for offline load.
 ]]
 
-local VERSION = "1.1.0-pc"
+local VERSION = "1.2.0-pc"
 
 local CONFIG = {
     PLACE_ID = 134225461562780,
     API_URL_FALLBACK = "https://tackle-soldiers-miller-niagara.trycloudflare.com",
-    API_URL_GITHUB = "https://raw.githubusercontent.com/quarter67/loader/main/api-url.txt",
+    API_URL_GITHUB = "https://raw.githubusercontent.com/quarter67/NightFall/main/api-url.txt",
     SCRIPT_URLS = {
         "https://raw.githubusercontent.com/quarter67/NightFall/main/SurviveHomelanderPC.lua",
+    },
+    KEYLESS_SCRIPT_URLS = {
+        "https://raw.githubusercontent.com/quarter67/NightFall/main/SurviveHomelanderPCkeyless.lua",
     },
     LOCAL_PATHS = {
         "SurviveHomelanderPC.lua",
@@ -23,6 +29,14 @@ local CONFIG = {
         "workspace/SurviveHomelanderPC.lua",
         "nightfall/SurviveHomelanderPC.lua",
         "Downloads/script/SurviveHomelanderPC.lua",
+    },
+    KEYLESS_LOCAL_PATHS = {
+        "SurviveHomelanderPCkeyless.lua",
+        "script/SurviveHomelanderPCkeyless.lua",
+        "ScriptHub/SurviveHomelanderPCkeyless.lua",
+        "workspace/SurviveHomelanderPCkeyless.lua",
+        "nightfall/SurviveHomelanderPCkeyless.lua",
+        "Downloads/script/SurviveHomelanderPCkeyless.lua",
     },
 }
 
@@ -131,34 +145,37 @@ end
 
 local HWID = getHwid()
 
-local function isValidScriptBody(body)
-    return body
-        and #body > 500
-        and not body:find("<!DOCTYPE")
-        and body:sub(1, 1) ~= "{"
-        and (body:find("resolveScriptAccess") or body:find("SurviveHomelanderPC"))
+local function isValidScriptBody(body, mode)
+    if not body or #body <= 500 or body:find("<!DOCTYPE") or body:sub(1, 1) == "{" then
+        return false
+    end
+    if mode == "keyless" then
+        return body:find("SurviveHomelanderPCkeyless") or body:find("resolveScriptAccess")
+    end
+    return body:find("resolveScriptAccess") or body:find("SurviveHomelanderPC")
 end
 
-local function loadLocalScript()
-    for _, path in ipairs(CONFIG.LOCAL_PATHS) do
+local function loadLocalScript(paths, mode)
+    for _, path in ipairs(paths) do
         local content = fsRead(path)
-        if isValidScriptBody(content) then
+        if isValidScriptBody(content, mode) then
             return content, path
         end
     end
     return nil, nil
 end
 
-local function downloadFromUrls()
-    for i, base in ipairs(CONFIG.SCRIPT_URLS) do
+local function downloadFromUrls(urls, mode)
+    for i, base in ipairs(urls) do
         local url = base .. "?t=" .. tostring(os.time()) .. "&try=" .. i
         print("[NightFall PC] Downloading from GitHub...")
         local body = httpGet(url)
-        if isValidScriptBody(body) then
+        if isValidScriptBody(body, mode) then
             return body, nil
         end
     end
-    return nil, "GitHub download failed — enable HTTP or use local SurviveHomelanderPC.lua"
+    local label = mode == "keyless" and "SurviveHomelanderPCkeyless.lua" or "SurviveHomelanderPC.lua"
+    return nil, "GitHub download failed — enable HTTP or use local " .. label
 end
 
 local function downloadFromApi(key)
@@ -170,7 +187,7 @@ local function downloadFromApi(key)
     )
     print("[NightFall PC] Fetching script from key server...")
     local body = httpGet(url)
-    if isValidScriptBody(body) then
+    if isValidScriptBody(body, "premium") then
         return body, nil
     end
     if body and body:sub(1, 1) == "{" then
@@ -183,7 +200,7 @@ local function downloadFromApi(key)
 end
 
 local function acquireScript(key)
-    local localSrc, localPath = loadLocalScript()
+    local localSrc, localPath = loadLocalScript(CONFIG.LOCAL_PATHS, "premium")
     if localSrc then
         print("[NightFall PC] Using local file: " .. localPath)
         return localSrc, nil
@@ -197,16 +214,17 @@ local function acquireScript(key)
         end
     end
 
-    return downloadFromUrls()
+    return downloadFromUrls(CONFIG.SCRIPT_URLS, "premium")
 end
 
-local function patchKeyless(source)
-    return table.concat({
-        "_G.NF_KEYLESS = true",
-        "shared.NF_KEYLESS = true",
-        "pcall(function() if typeof(getgenv)=='function' then getgenv().NF_KEYLESS=true end end)",
-        source,
-    }, "\n")
+local function acquireKeylessScript()
+    local localSrc, localPath = loadLocalScript(CONFIG.KEYLESS_LOCAL_PATHS, "keyless")
+    if localSrc then
+        print("[NightFall PC] Using local keyless file: " .. localPath)
+        return localSrc, nil
+    end
+
+    return downloadFromUrls(CONFIG.KEYLESS_SCRIPT_URLS, "keyless")
 end
 
 local function patchPremiumKey(source, key)
@@ -359,7 +377,7 @@ subtitle.TextColor3 = Color3.fromRGB(140, 144, 160)
 subtitle.TextXAlignment = Enum.TextXAlignment.Left
 subtitle.TextYAlignment = Enum.TextYAlignment.Top
 subtitle.TextWrapped = true
-subtitle.Text = "PC test loader · SurviveHomelanderPC.lua · loader.lua stays separate"
+subtitle.Text = "PC loader · premium = SurviveHomelanderPC · keyless = keyless build"
 
 local status = Instance.new("TextLabel", panel)
 status.BackgroundTransparency = 1
@@ -413,7 +431,7 @@ hint.TextColor3 = Color3.fromRGB(120, 124, 140)
 hint.TextWrapped = true
 hint.TextXAlignment = Enum.TextXAlignment.Left
 hint.TextYAlignment = Enum.TextYAlignment.Top
-hint.Text = "v" .. VERSION .. " · local SurviveHomelanderPC.lua → GitHub → key server"
+hint.Text = "v" .. VERSION .. " · GitHub: quarter67/NightFall + quarter67/loader"
 
 local busy = false
 
@@ -489,10 +507,10 @@ keylessBtn.MouseButton1Click:Connect(function()
     busy = true
     lockBtns(true)
     keylessBtn.Text = "Loading..."
-    setStatus("Loading keyless SurviveHomelanderPC...")
+    setStatus("Loading keyless build (no premium)...")
 
     task.spawn(function()
-        local source, err = acquireScript(nil)
+        local source, err = acquireKeylessScript()
         if not source then
             busy = false
             lockBtns(false)
@@ -501,8 +519,7 @@ keylessBtn.MouseButton1Click:Connect(function()
             return
         end
 
-        source = patchKeyless(source)
-        local ok, runErr = runSource(source, "SurviveHomelanderPCKeyless")
+        local ok, runErr = runSource(source, "SurviveHomelanderPCkeyless")
         if ok then
             pcall(function() gui:Destroy() end)
             print("[NightFall PC] Keyless load complete (premium locked).")
