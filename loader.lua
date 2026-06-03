@@ -5,7 +5,7 @@
     loadstring(game:HttpGet("https://raw.githubusercontent.com/quarter67/loader/main/loader.lua?t=" .. tostring(os.time()) .. "&v=600"))()
 ]]
 
-local VERSION = "6.0.0-unified"
+local VERSION = "6.0.1-unified"
 
 local CONFIG = {
     PLACE_ID = 134225461562780,
@@ -230,9 +230,9 @@ local function isValidScriptBody(body, mode)
         return false
     end
     if mode == "keyless" then
-        return body:find(PLATFORM.keylessMarker) or body:find("resolveScriptAccess")
+        return body:find(PLATFORM.keylessMarker) ~= nil
     end
-    return body:find(PLATFORM.premiumMarker) or body:find("resolveScriptAccess")
+    return body:find(PLATFORM.premiumMarker) ~= nil
 end
 
 local function loadLocalScript(paths, mode)
@@ -286,6 +286,9 @@ local function acquireScript(key)
         return localSrc, nil
     end
 
+    local fromGit, gitErr = downloadFromUrls(PLATFORM.scriptUrls, "premium")
+    if fromGit then return fromGit, nil end
+
     if key and key ~= "" then
         local fromApi, apiErr = downloadFromApi(key)
         if fromApi then return fromApi, nil end
@@ -294,7 +297,7 @@ local function acquireScript(key)
         end
     end
 
-    return downloadFromUrls(PLATFORM.scriptUrls, "premium")
+    return nil, gitErr or "Failed to download script"
 end
 
 local function acquireKeylessScript()

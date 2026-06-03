@@ -150,9 +150,9 @@ local function isValidScriptBody(body, mode)
         return false
     end
     if mode == "keyless" then
-        return body:find("SurviveHomelanderPCkeyless") or body:find("resolveScriptAccess")
+        return body:find("SurviveHomelanderPCkeyless") ~= nil
     end
-    return body:find("resolveScriptAccess") or body:find("SurviveHomelanderPC")
+    return body:find("SurviveHomelanderPC") ~= nil
 end
 
 local function loadLocalScript(paths, mode)
@@ -206,6 +206,9 @@ local function acquireScript(key)
         return localSrc, nil
     end
 
+    local fromGit, gitErr = downloadFromUrls(CONFIG.SCRIPT_URLS, "premium")
+    if fromGit then return fromGit, nil end
+
     if key and key ~= "" then
         local fromApi, apiErr = downloadFromApi(key)
         if fromApi then return fromApi, nil end
@@ -214,7 +217,7 @@ local function acquireScript(key)
         end
     end
 
-    return downloadFromUrls(CONFIG.SCRIPT_URLS, "premium")
+    return nil, gitErr or "Failed to download script"
 end
 
 local function acquireKeylessScript()
@@ -389,7 +392,7 @@ status.TextColor3 = Color3.fromRGB(52, 211, 153)
 status.TextXAlignment = Enum.TextXAlignment.Left
 status.TextYAlignment = Enum.TextYAlignment.Top
 status.TextWrapped = true
-status.Text = "Ready — local file used first if found in workspace."
+status.Text = "NightFall Ready - Script Loaded"
 
 local box = Instance.new("TextBox", panel)
 box.Position = UDim2.new(0, 14, 0, 122)
