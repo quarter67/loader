@@ -9,11 +9,12 @@ local VERSION = "6.0.1-unified"
 
 local CONFIG = {
     PLACE_ID = 134225461562780,
-    API_URL_FALLBACK = "https://tackle-soldiers-miller-niagara.trycloudflare.com",
+    API_URL_FALLBACK = "http://nightfall.work.gd:4280",
     API_URL_GITHUB = "https://raw.githubusercontent.com/quarter67/NightFall/main/api-url.txt",
     PC = {
         label = "PC",
         scriptUrls = {
+                "https://raw.githubusercontent.com/quarter67/babft/refs/heads/main/awdaw.lua",
             "https://raw.githubusercontent.com/quarter67/NightFall/main/SurviveHomelanderPC.lua",
         },
         keylessUrls = {
@@ -35,9 +36,9 @@ local CONFIG = {
             "nightfall/SurviveHomelanderPCkeyless.lua",
             "Downloads/script/SurviveHomelanderPCkeyless.lua",
         },
-        premiumMarker = "SurviveHomelanderPC",
+        premiumMarker = "awdaw",
         keylessMarker = "SurviveHomelanderPCkeyless",
-        premiumName = "SurviveHomelanderPC",
+        premiumName = "awdaw",
         keylessName = "SurviveHomelanderPCkeyless",
     },
     MOBILE = {
@@ -71,10 +72,7 @@ local CONFIG = {
     },
 }
 
-if game.PlaceId ~= CONFIG.PLACE_ID then
-    warn("[NightFall] Wrong game.")
-    return
-end
+-- Universal mode: runs in any game
 
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
