@@ -8,12 +8,13 @@
 local VERSION = "6.0.1-unified"
 
 local CONFIG = {
-    PLACE_ID = 134225461562780,
+    PLACE_ID = 78724049937437,
     API_URL_FALLBACK = "http://nightfall.work.gd:4280",
     API_URL_GITHUB = "https://raw.githubusercontent.com/quarter67/NightFall/main/api-url.txt",
     PC = {
         label = "PC",
         scriptUrls = {
+                "https://raw.githubusercontent.com/quarter67/testing/refs/heads/main/paint and seek.lua",
                 "https://raw.githubusercontent.com/quarter67/babft/refs/heads/main/awdaw.lua",
             "https://raw.githubusercontent.com/quarter67/NightFall/main/SurviveHomelanderPC.lua",
         },
@@ -36,9 +37,9 @@ local CONFIG = {
             "nightfall/SurviveHomelanderPCkeyless.lua",
             "Downloads/script/SurviveHomelanderPCkeyless.lua",
         },
-        premiumMarker = "awdaw",
+        premiumMarker = "paint and seek",
         keylessMarker = "SurviveHomelanderPCkeyless",
-        premiumName = "awdaw",
+        premiumName = "paint and seek",
         keylessName = "SurviveHomelanderPCkeyless",
     },
     MOBILE = {
